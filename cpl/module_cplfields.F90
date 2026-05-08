@@ -240,7 +240,13 @@ module module_cplfields
     "soil_type                       ", &
     "temperature_of_soil_layer       ", &
     "height                          ", &
-    "vegetation_type                 " &
+    "vegetation_type                 ", &
+    "inst_laten_heat_flx             ", &
+    "inst_sensi_heat_flx             ", &
+    "inst_net_sw_flx                 ", &
+    "inst_pres_height_surface        ", &
+    "inst_spec_humid_height2m        ", &
+    "inst_temp_height2m              " &
     ! "number_of_vegetation_categories ", &
     ! "fraction_of_vegetation_category "  &
     ]

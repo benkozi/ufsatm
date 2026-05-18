@@ -1550,7 +1550,7 @@ subroutine update_atmos_chemistry(state, rc)
       if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
         line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 
-      !if (GFS_Control%cplaqm) then
+      if (GFS_Control%cplaqm .or. GFS_Control%cplcat) then
 
         call cplFieldGet(state,'canopy_moisture_storage', farrayPtr2d=canopy, rc=localrc)
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -1615,8 +1615,8 @@ subroutine update_atmos_chemistry(state, rc)
         call cplFieldGet(state,'vegetation_type', farrayPtr2d=vtype, rc=localrc)
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__, file=__FILE__, rcToReturn=rc)) return
-
-      !else
+      end if
+      if (.not. GFS_Control%cplaqm) then
 
         call cplFieldGet(state,'inst_liq_nonconv_tendency_levels', &
                          farrayPtr3d=pflls, rc=localrc)
@@ -1648,7 +1648,7 @@ subroutine update_atmos_chemistry(state, rc)
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 
-      !end if !!!comment out to include both aqm and non-aqm fields
+      end if !!!comment out to include both aqm and non-aqm fields
 
       !--- handle all three-dimensional variables
 
@@ -1663,11 +1663,11 @@ subroutine update_atmos_chemistry(state, rc)
       va   = reshape(GFS_Stateout%gv0, shape(va  ))
       cldfra = reshape(GFS_IntDiag%cldfra, shape(cldfra))
 
-      !if (.not.GFS_Control%cplaqm) then
+      if (.not.GFS_Control%cplaqm) then
         !--- layer values
         pfils = reshape(GFS_Coupling%pfi_lsan, shape(pfils))
         pflls = reshape(GFS_Coupling%pfl_lsan, shape(pflls))
-      !end if  !comment out to include both aqm and non-aqm fields
+      end if  !comment out to include both aqm and non-aqm fields
 
       !--- top interface values
       k = nk+1
@@ -1718,7 +1718,7 @@ subroutine update_atmos_chemistry(state, rc)
       u10m = reshape(GFS_Coupling%u10mi_cpl, shape(u10m))
       v10m = reshape(GFS_Coupling%v10mi_cpl, shape(v10m))
 
-      !if (GFS_Control%cplaqm) then
+      if (GFS_Control%cplaqm .or. GFS_Control%cplcat) then
         cmm = reshape(GFS_IntDiag%cmm, shape(cmm))
         canopy = reshape(GFS_Sfcprop%canopy, shape(canopy))
         !oro(i,j)    = max(0.d0, GFS_Data(nb)%Sfcprop%oro(ix))
@@ -1753,7 +1753,8 @@ subroutine update_atmos_chemistry(state, rc)
         psfc   = reshape(GFS_Coupling%psurfi_cpl, shape(psfc))
         q2m    = reshape(GFS_Coupling%q2mi_cpl, shape(q2m))
         t2m    = reshape(GFS_Coupling%t2mi_cpl, shape(t2m))
-      !else
+      end if
+      if (.not. GFS_Control%cplaqm) then
         !flake(i,j)  = max(zero, GFS_Data(nb)%Sfcprop%lakefrac(ix))
         flake = reshape(GFS_Sfcprop%lakefrac, shape(flake))
         where (flake<zero) flake = zero
@@ -1765,7 +1766,7 @@ subroutine update_atmos_chemistry(state, rc)
         else
           swet = reshape(GFS_IntDiag%wet1, shape(swet))
         end if
-      !end if !comment out to include both aqm and non-aqm fields
+      end if !comment out to include both aqm and non-aqm fields
 
       ! -- zero out accumulated fields
       if (.not. GFS_control%cplflx .and. .not. GFS_control%cpllnd) then
@@ -1812,7 +1813,7 @@ subroutine update_atmos_chemistry(state, rc)
         write(6,'("update_atmos: pflls  - min/max/avg",3g16.6)') minval(pflls),  maxval(pflls),  sum(pflls)/size(pflls)
         write(6,'("update_atmos: u10m   - min/max/avg",3g16.6)') minval(u10m),   maxval(u10m),   sum(u10m)/size(u10m)
         write(6,'("update_atmos: v10m   - min/max/avg",3g16.6)') minval(v10m),   maxval(v10m),   sum(v10m)/size(v10m)
-        !if (GFS_Control%cplaqm) then
+        if (GFS_Control%cplaqm .or. GFS_Control%cplcat) then
           write(6,'("update_atmos: canopy - min/max/avg",3g16.6)') minval(canopy), maxval(canopy), sum(canopy)/size(canopy)
           write(6,'("update_atmos: cmm    - min/max/avg",3g16.6)') minval(cmm),    maxval(cmm),    sum(cmm)/size(cmm)
           write(6,'("update_atmos: dqsfc  - min/max/avg",3g16.6)') minval(dqsfc),  maxval(dqsfc),  sum(dqsfc)/size(dqsfc)
@@ -1829,13 +1830,13 @@ subroutine update_atmos_chemistry(state, rc)
           write(6,'("update_atmos: xlai   - min/max/avg",3g16.6)') minval(xlai),   maxval(xlai),   sum(xlai)/size(xlai)
           write(6,'("update_atmos: stype  - min/max/avg",3g16.6)') minval(stype),  maxval(stype),  sum(stype)/size(stype)
           write(6,'("update_atmos: vtype  - min/max/avg",3g16.6)') minval(vtype),  maxval(vtype),  sum(vtype)/size(vtype)
-        !else
+        else if (.not. GFS_Control%cplaqm) then
           write(6,'("update_atmos: flake  - min/max/avg",3g16.6)') minval(flake),  maxval(flake),  sum(flake)/size(flake)
           write(6,'("update_atmos: focn   - min/max/avg",3g16.6)') minval(focn),   maxval(focn),   sum(focn)/size(focn)
           write(6,'("update_atmos: shfsfc - min/max/avg",3g16.6)') minval(shfsfc), maxval(shfsfc), sum(shfsfc)/size(shfsfc)
           write(6,'("update_atmos: slc    - min/max/avg",3g16.6)') minval(slc),    maxval(slc),    sum(slc)/size(slc)
           write(6,'("update_atmos: swet   - min/max/avg",3g16.6)') minval(swet),   maxval(swet),   sum(swet)/size(swet)
-        !end if
+        end if
       end if
 
     case default

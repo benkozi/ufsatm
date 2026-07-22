@@ -1650,7 +1650,7 @@ subroutine update_atmos_chemistry(state, rc)
         if (ESMF_LogFoundError(rcToCheck=localrc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__, file=__FILE__, rcToReturn=rc)) return
 
-      end if !!!comment out to include both aqm and non-aqm fields
+      end if
 
       !--- handle all three-dimensional variables
 
@@ -1669,7 +1669,7 @@ subroutine update_atmos_chemistry(state, rc)
         !--- layer values
         pfils = reshape(GFS_Coupling%pfi_lsan, shape(pfils))
         pflls = reshape(GFS_Coupling%pfl_lsan, shape(pflls))
-      end if  !comment out to include both aqm and non-aqm fields
+      end if
 
       !--- top interface values
       k = nk+1
@@ -1768,7 +1768,7 @@ subroutine update_atmos_chemistry(state, rc)
         else
           swet = reshape(GFS_IntDiag%wet1, shape(swet))
         end if
-      end if !comment out to include both aqm and non-aqm fields
+      end if
 
       ! -- zero out accumulated fields
       if (.not. GFS_control%cplflx .and. .not. GFS_control%cpllnd) then
